@@ -586,3 +586,36 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
+
+/* ===================================================================
+   Credit link — fixed, top-left
+   Top-left is the only corner clear at both 1440px and 360px: the right
+   column is the configurator panel on desktop, and under 768px that panel
+   becomes a fixed bottom sheet spanning the whole lower edge.
+   z-index 60 keeps it visible over the loader (50) and the mobile sheet (40)
+   while staying under the modal backdrop (100).
+   =================================================================== */
+.credit-link {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 60;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  transition: color 180ms var(--ease-out-expo);
+}
+
+.credit-link:hover,
+.credit-link:focus-visible {
+  color: var(--color-text);
+}
+
+@media (min-width: 768px) {
+  .credit-link {
+    top: 24px;
+    left: 28px;
+  }
+}
