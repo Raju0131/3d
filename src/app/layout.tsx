@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import CreditLink from '@/components/CreditLink';
+import ModelCredit from '@/components/ModelCredit';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -58,6 +59,7 @@ export default function RootLayout({
       <body>
         {children}
         <CreditLink />
+        <ModelCredit />
       </body>
     </html>
   );

@@ -619,3 +619,50 @@ body {
     left: 28px;
   }
 }
+
+/* ===================================================================
+   Model credit — the CC BY 4.0 attribution, stacked under .credit-link
+   Two constraints drive the widths below:
+   - the mobile sheet drags up to 90vh. On a phone 700px tall or shorter its
+     top edge lands above this block, and two stacked credit lines cannot fit
+     in the ~64px left over, so under 768px this sits at z-index 39: the sheet
+     passes over it instead of the text floating on top of the panel. The
+     default 40vh sheet never reaches it, so nothing changes at rest;
+   - between 768px and ~900px the scene column is narrower than the sentence,
+     so it is capped to the column (viewport minus the 380px panel and the
+     gutters) or it would render over the panel at z-index 60.
+   =================================================================== */
+.model-credit {
+  position: fixed;
+  top: 38px;
+  left: 20px;
+  z-index: 39;
+  max-width: calc(100vw - 40px);
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-text-tertiary);
+  pointer-events: none; /* the sentence must not block dragging the canvas */
+}
+
+.model-credit a {
+  pointer-events: auto; /* only the two links take clicks */
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 180ms var(--ease-out-expo);
+}
+
+.model-credit a:hover,
+.model-credit a:focus-visible {
+  color: var(--color-text);
+}
+
+@media (min-width: 768px) {
+  .model-credit {
+    top: 44px;
+    left: 28px;
+    max-width: calc(100vw - 436px);
+    z-index: 60; /* no sheet on desktop, so match .credit-link */
+  }
+}
