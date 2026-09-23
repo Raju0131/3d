@@ -13,18 +13,23 @@ import Sneaker from './Sneaker';
 import Loader from './Loader';
 
 // ---------------------------------------------------------------------------
-// Error boundary for the 3D model
+// Error boundary for anything inside the canvas that loads over the network.
+//
+// Both the model and the environment map can fail, and an uncaught throw from
+// either one unmounts the whole React tree, blanking the page. Each gets its
+// own boundary so a failure costs only that piece.
 // ---------------------------------------------------------------------------
 import { Component, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-class ModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class SceneErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -36,18 +41,21 @@ class ModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 
   render() {
     if (this.state.hasError) {
-      return (
-        <group>
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[1, 0.4, 1.5]} />
-            <meshStandardMaterial color="#e0d5c9" roughness={0.7} />
-          </mesh>
-        </group>
-      );
+      return this.props.fallback ?? null;
     }
     return this.props.children;
   }
 }
+
+/** Shown in place of the model if it cannot be loaded. */
+const MODEL_FALLBACK = (
+  <group>
+    <mesh position={[0, 0, 0]}>
+      <boxGeometry args={[1, 0.4, 1.5]} />
+      <meshStandardMaterial color="#e0d5c9" roughness={0.7} />
+    </mesh>
+  </group>
+);
 
 // ---------------------------------------------------------------------------
 // Fallback shown inside <Suspense> while model loads
@@ -130,8 +138,15 @@ export default function Scene() {
         />
         <directionalLight position={[-3, 3, -3]} intensity={0.3} />
 
-        {/* Environment */}
-        <Environment preset="city" />
+        {/* Environment — drei fetches this HDR from its asset CDN at runtime.
+            Boundary and Suspense are its own: if the CDN is unreachable the
+            scene simply loses image-based lighting instead of taking the page
+            down with it. */}
+        <SceneErrorBoundary>
+          <Suspense fallback={null}>
+            <Environment preset="city" />
+          </Suspense>
+        </SceneErrorBoundary>
 
         {/* Ground shadows — positioned at the bottom of a 2-unit object centered at origin
             The model is centered at origin so its bottom is at roughly y = -1.
@@ -146,13 +161,13 @@ export default function Scene() {
 
         {/* Model with error boundary + suspense
             Bounds is a safety net after normalization, with a gentle margin */}
-        <Suspense fallback={<SuspenseFallback />}>
-          <ModelErrorBoundary>
+        <SceneErrorBoundary fallback={MODEL_FALLBACK}>
+          <Suspense fallback={<SuspenseFallback />}>
             <Bounds fit clip observe margin={1.2}>
               <Sneaker />
             </Bounds>
-          </ModelErrorBoundary>
-        </Suspense>
+          </Suspense>
+        </SceneErrorBoundary>
 
         {/* Controls */}
         <AutoRotateControls />

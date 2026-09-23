@@ -167,22 +167,23 @@ function useBottomSheet() {
     }
   }, []);
 
+  const snapTo = useCallback((point: 'peek' | 'full') => {
+    setSnapPoint(point);
+    if (sheetRef.current) {
+      const fraction = point === 'full' ? SNAP_FULL : SNAP_PEEK;
+      sheetRef.current.style.height = `${window.innerHeight * fraction}px`;
+    }
+  }, []);
+
   const onDragEnd = useCallback(() => {
     if (!sheetRef.current) return;
     const h = sheetRef.current.offsetHeight;
-    const vh = window.innerHeight;
-    const midpoint = vh * ((SNAP_PEEK + SNAP_FULL) / 2);
-    if (h > midpoint) {
-      setSnapPoint('full');
-      sheetRef.current.style.height = `${vh * SNAP_FULL}px`;
-    } else {
-      setSnapPoint('peek');
-      sheetRef.current.style.height = `${vh * SNAP_PEEK}px`;
-    }
+    const midpoint = window.innerHeight * ((SNAP_PEEK + SNAP_FULL) / 2);
+    snapTo(h > midpoint ? 'full' : 'peek');
     dragStartY.current = 0;
-  }, []);
+  }, [snapTo]);
 
-  return { sheetRef, snapPoint, setSnapPoint, onDragStart, onDragMove, onDragEnd };
+  return { sheetRef, snapPoint, snapTo, onDragStart, onDragMove, onDragEnd };
 }
 
 // ---------------------------------------------------------------------------
@@ -198,7 +199,7 @@ export default function Configurator() {
   const totalPrice = useSneakerStore((s) => s.totalPrice());
 
   const animatedPrice = useAnimatedPrice(totalPrice);
-  const { sheetRef, onDragStart, onDragMove, onDragEnd } = useBottomSheet();
+  const { sheetRef, snapPoint, snapTo, onDragStart, onDragMove, onDragEnd } = useBottomSheet();
 
   const handleSwatchKey = useCallback(
     (e: ReactKeyboardEvent, hex: string) => {
@@ -208,6 +209,21 @@ export default function Configurator() {
       }
     },
     [setColor],
+  );
+
+  // The handle is focusable, so it needs to do something from the keyboard —
+  // and ARIA requires a focusable separator to expose its current value.
+  const handleSheetKey = useCallback(
+    (e: ReactKeyboardEvent) => {
+      if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        snapTo('full');
+      } else if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        snapTo('peek');
+      }
+    },
+    [snapTo],
   );
 
   const handleMaterialKey = useCallback(
@@ -348,8 +364,13 @@ export default function Configurator() {
           onPointerCancel={onDragEnd}
           role="separator"
           aria-orientation="horizontal"
-          aria-label="Drag to resize panel"
+          aria-label="Resize panel"
+          aria-valuenow={Math.round((snapPoint === 'full' ? SNAP_FULL : SNAP_PEEK) * 100)}
+          aria-valuemin={Math.round(SNAP_PEEK * 100)}
+          aria-valuemax={Math.round(SNAP_FULL * 100)}
+          aria-valuetext={snapPoint === 'full' ? 'Panel expanded' : 'Panel collapsed'}
           tabIndex={0}
+          onKeyDown={handleSheetKey}
         >
           <div className="sheet-handle-bar" />
         </div>
