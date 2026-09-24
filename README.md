@@ -139,7 +139,7 @@ The header price counts toward the new total with `requestAnimationFrame`.
 - Anything in the canvas that loads over the network gets its own `SceneErrorBoundary`. If the model fails, a plain box is shown in its place. If the environment map fails, the scene simply renders without image-based lighting. Either failure is contained: an uncaught throw from inside the canvas would unmount the whole React tree and blank the page.
 - `Sneaker.tsx` measures the model's bounding box, scales the model so its longest side is 2 units, and centres it at the origin. The camera, the zoom limits (2 to 8 units) and the contact shadow are tuned for that size. drei's `<Bounds fit clip observe>` frames the camera on load and again whenever the canvas resizes.
 - Lighting comes from an ambient light, a key directional light with 1024 × 1024 shadow maps, and a fill light. drei's `city` environment preset adds image-based lighting, and drei's `ContactShadows` sits under the model.
-- **One third-party request at runtime.** The `city` preset makes drei fetch `potsdamer_platz_1k.hdr` from its asset CDN (`raw.githack.com`) while the page runs. It is the only request the page makes to an origin other than its own. To remove it, download that file into `public/`, and pass it directly: `<Environment files="/potsdamer_platz_1k.hdr" />`. The page already survives the fetch failing, but self-hosting removes the extra origin and the console error that comes with it.
+- **The environment map is self-hosted.** drei's `city` preset fetches `potsdamer_platz_1k.hdr` (1.47 MB) from its asset CDN at runtime. The same file is served from `public/` instead, through `<Environment files="/potsdamer_platz_1k.hdr" />`, so the page makes no request to any origin but its own: one less DNS lookup and TLS handshake, the file cached under the site's own headers, and nothing to break if that CDN is slow or unreachable.
 - `OrbitControls` has panning turned off and keeps the camera between 30° and 100° from straight overhead. Auto-rotate stops when you start interacting and restarts 3 seconds after you stop.
 
 ### Responsive layout and the bottom sheet
@@ -183,6 +183,7 @@ The canvas is created with `preserveDrawingBuffer: true`, so the Screenshot butt
 public/
 ├── sneaker.glb           # optimised model: Draco geometry, WebP textures
 ├── draco/                # self-hosted Draco decoder (WebAssembly, plus a JS fallback)
+├── potsdamer_platz_1k.hdr # environment map for image-based lighting (Poly Haven, CC0)
 └── og.png                # 1200 × 630 social preview image
 src/
 ├── app/
@@ -251,6 +252,7 @@ The live demo runs on Vercel. The repo has no `vercel.json` and uses no environm
 
 - **3D model:** ["Sneakers - Game Ready - Textured (Mockup)"](https://sketchfab.com/3d-models/sneakers-game-ready-textured-mockup-d9a4eda1845249a69d3c79814be9efc0) by [kane_sk06](https://sketchfab.com/kanesk06), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). It has been modified: compressed and re-textured for the web as described above, and recoloured at runtime. The same attribution is stored in the file's `asset.extras` and shown on the page.
 - **Draco decoder** (`public/draco/`): [Google Draco](https://github.com/google/draco), Apache License 2.0.
+- **Environment map** (`public/potsdamer_platz_1k.hdr`): "Potsdamer Platz" from [Poly Haven](https://polyhaven.com/a/potsdamer_platz), released under CC0. It is the file behind drei's `city` preset, copied here so the page serves it itself. CC0 asks for nothing, but it is someone's work and worth naming.
 
 The model is kane_sk06's work. The compression, the colour shader and the front end were built for this project by Md. Raju Ahmed.
 
@@ -258,7 +260,7 @@ The model is kane_sk06's work. The compression, the colour shader and the front 
 
 The code in this repository is released under the MIT License. The full text is in [`LICENSE`](LICENSE).
 
-The 3D model in `public/sneaker.glb` is not covered by the MIT License. It stays under CC BY 4.0, so any reuse needs the attribution above. The Draco decoder files keep their Apache 2.0 licence.
+The 3D model in `public/sneaker.glb` is not covered by the MIT License. It stays under CC BY 4.0, so any reuse needs the attribution above. The Draco decoder files keep their Apache 2.0 licence, and the environment map is CC0.
 
 ## Author
 

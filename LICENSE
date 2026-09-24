@@ -22,4 +22,6 @@ SOFTWARE.
 
 Note: the 3D model in public/sneaker.glb is not covered by this license. It is
 "Sneakers - Game Ready - Textured (Mockup)" by kane_sk06, licensed CC BY 4.0.
-The Draco decoder in public/draco/ keeps its Apache 2.0 license.
+The Draco decoder in public/draco/ keeps its Apache 2.0 license. The
+environment map in public/potsdamer_platz_1k.hdr is "Potsdamer Platz" from
+Poly Haven, released under CC0.

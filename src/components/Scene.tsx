@@ -57,6 +57,12 @@ const MODEL_FALLBACK = (
   </group>
 );
 
+/**
+ * The HDR behind drei's `city` preset, self-hosted. Poly Haven, CC0.
+ * Keeping it local removes the only third-party request the page made.
+ */
+const ENV_MAP_PATH = '/potsdamer_platz_1k.hdr';
+
 // ---------------------------------------------------------------------------
 // Fallback shown inside <Suspense> while model loads
 // ---------------------------------------------------------------------------
@@ -138,13 +144,13 @@ export default function Scene() {
         />
         <directionalLight position={[-3, 3, -3]} intensity={0.3} />
 
-        {/* Environment — drei fetches this HDR from its asset CDN at runtime.
-            Boundary and Suspense are its own: if the CDN is unreachable the
-            scene simply loses image-based lighting instead of taking the page
-            down with it. */}
+        {/* Environment — the same HDR drei's `city` preset uses, served from
+            our own /public instead of drei's CDN, so the page makes no
+            third-party request. Boundary and Suspense are its own: a failure
+            here costs the image-based lighting, not the page. */}
         <SceneErrorBoundary>
           <Suspense fallback={null}>
-            <Environment preset="city" />
+            <Environment files={ENV_MAP_PATH} />
           </Suspense>
         </SceneErrorBoundary>
 
